@@ -1,0 +1,83 @@
+sv_model <-train(cuisine ~ ., data=training[1:1000,], method="gbm")
+print(sv_model)
+setwd("C:/Users/t1600/Dropbox/MTY-DSE")
+library(jsonlite)
+train <- fromJSON("train.json", flatten = TRUE)[-1]
+head(train, 1)
+library(tm)
+library(caret)
+ingredients <- Corpus(VectorSource(train$ingredients))
+ingredients
+library(SnowballC)
+ingredients <- tm_map(ingredients, removeNumbers)
+ingredients <- tm_map(ingredients, removePunctuation)
+ingredients <- tm_map(ingredients, stemDocument)
+ingredients <- tm_map(ingredients, stripWhitespace)
+ingredientsDTM <- DocumentTermMatrix(ingredients, control = list(weighting =
+                                                                   function(x)
+                                                                     weightTfIdf(x, normalize =
+                                                                                   FALSE)))
+ingredientsDTM
+inTrain <- createDataPartition(y = ingredientsDTM$cuisine, p = 0.8, list = FALSE)
+training <- ingredientsDTM[inTrain,]
+testing <- ingredientsDTM[-inTrain,]
+ingredientsDTM <- as.data.frame(as.matrix(sparse))
+ingredientsDTM <- as.data.frame(as.matrix(ingredientsDTM))
+ingredientsDTM$cuisine <- as.factor(train$cuisine)
+inTrain <- createDataPartition(y = ingredientsDTM$cuisine, p = 0.8, list = FALSE)
+training <- ingredientsDTM[inTrain,]
+testing <- ingredientsDTM[-inTrain,]
+View(training)
+set.seed(1989)
+cartModelFit <- rpart(cuisine ~ ., data = training, method = "class")
+## Plot the tree
+prp(cartModelFit)
+library(rpart)
+library(rpart.plot)
+set.seed(1989)
+cartModelFit <- rpart(cuisine ~ ., data = training, method = "class")
+prp(cartModelFit)
+sparse <- removeSparseTerms(ingredientsDTM, 0.999)
+sparse
+ingredientsDTM <- DocumentTermMatrix(ingredients, control = list(weighting =
+                                                                   function(x)
+                                                                     weightTfIdf(x, normalize =
+                                                                                   FALSE)))
+sparse <- removeSparseTerms(ingredientsDTM, 0.999)
+sparse
+ingredientsDTM <- as.data.frame(as.matrix(sparse))
+ingredientsDTM$cuisine <- as.factor(train$cuisine)
+inTrain <- createDataPartition(y = ingredientsDTM$cuisine, p = 0.8, list = FALSE)
+training <- ingredientsDTM[inTrain,]
+testing <- ingredientsDTM[-inTrain,]
+rf_model <-train(cuisine ~ ., data=training[1:10,], method="rf")
+View(training)
+training$cuisine
+rf_model <-train(cuisine ~ ., data=training[1:100,], method="rf")
+warnings()
+rf_model <-train(cuisine ~ ., data=training[1:100,], method="gbm")
+rf_model <-train(cuisine ~ ., data=training[1:100,], method = "knn",
+                 preProcess = c("center", "scale"),
+                 tuneLength = 10,
+                 trControl = trainControl(method = "cv"))
+rf_model <-train(cuisine ~ ., data=training[1:1000,], method = "knn",
+                 trControl = trainControl(method = "cv"))
+print(rf_model)
+rf_model <-train(cuisine ~ ., data=training[1:1000,], method = "svmLinear",
+                 trControl = trainControl(method = "cv"))
+print(rf_model)
+print(rf_model$finalModel)
+set.seed(1989)
+svm_model <-train(cuisine ~ ., data=training[1:1000,], method = "svmLinear",
+                  trControl = trainControl(method = "cv"))
+print(svm_model)
+svm_predict <- predict(svm_model, newdata = testing, type = "svmLinear")
+svm_predict <- predict(svm_model, newdata = testing, type = "raw")
+svm_predict
+svm_cm <- confusionMatrix(svm_predict, testing$cuisine)
+svm_cm
+?predict
+svm_predict <- predict(svm_model, newdata = testing, type = "raw")
+svm_predict <- predict(svm_model, newdata = testing)
+svm_cm <- confusionMatrix(svm_predict, testing$cuisine)
+svm_cm
